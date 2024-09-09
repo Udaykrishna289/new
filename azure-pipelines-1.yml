@@ -10,17 +10,31 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
+  # Checkout the code
   - checkout: self
     submodules: true
+
+  # Install dependencies (for example, if using Node.js)
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '14.x'
+
+  # Run npm install
+  - script: |
+      npm install
+    displayName: 'Install Node.js Dependencies'
+
+  # Run npm build
+  - script: |
+      npm run build
+    displayName: 'Build Application'
+
+  # Deploy to Azure Static Web App
   - task: AzureStaticWebApp@0
     inputs:
-      app_location: '/' # App source code path relative to cwd
-      api_location: 'api' # Api source code path relative to cwd
-      app_build_command: 'npm run build-ui-prod'
-      api_build_command: 'npm run build-api-prod'
-      output_location: '' # Built app content directory relative to app_location - optional
-      cwd: '$(System.DefaultWorkingDirectory)/myapp' # Working directory - optional
-      skip_api_build: true
+      app_location: 'build'  # Update this to the correct output folder (e.g., 'build' for React)
+      api_location: 'api'
+      output_location: ''
+      
     env:
-      SKIP_DEPLOY_ON_MISSING_SECRETS: true
-      azure_static_web_apps_api_token: $(deployment_token)
+      azure_static_web_api_token: $(deployment_token)
