@@ -35,6 +35,15 @@ steps:
       npm run build
     displayName: 'Build Application'
 
+  # Build the application (Duplicate - but included as per your script)
+  - script: |
+      set -e
+      echo "Building application"
+      npm install
+      npm run build
+    displayName: 'Build Application'
+    continueOnError: false  # Ensure failure is reported
+
   # Deploy the application with error handling
   - script: |
       set -e
@@ -44,6 +53,7 @@ steps:
         exit 0  # Exit gracefully even on failure
       fi
     displayName: 'Deploy Application'
+    continueOnError: false  # Fail if deployment fails
 
   # Deploy to Azure Static Web App
   - task: AzureStaticWebApp@0
