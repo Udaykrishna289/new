@@ -4,7 +4,7 @@
 # https://aka.ms/yaml
 
 trigger:
-- main
+  - main
 
 pool:
   vmImage: ubuntu-latest
@@ -12,14 +12,15 @@ pool:
 steps:
   - checkout: self
     submodules: true
-
   - task: AzureStaticWebApp@0
     inputs:
-      app_location: '/'
-      api_location: 'api'
-      output_location: ''
-      skip_deploy_on_missing_secrets: true
-
+      app_location: 'src' # App source code path relative to cwd
+      api_location: 'api' # Api source code path relative to cwd
+      app_build_command: 'npm run build-ui-prod'
+      api_build_command: 'npm run build-api-prod'
+      output_location: 'public' # Built app content directory relative to app_location - optional
+      cwd: '$(System.DefaultWorkingDirectory)/myapp' # Working directory - optional
+      skip_api_build: true
     env:
-      azure_static_web_api_token: $(deployment_token)
-
+      SKIP_DEPLOY_ON_MISSING_SECRETS: true
+      azure_static_web_apps_api_token: $(deployment_token)
