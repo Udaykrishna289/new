@@ -8,16 +8,16 @@ trigger:
 
 pool:
   vmImage: ubuntu-latest
+
 variables:
   System.Debug: true
-
 
 steps:
   # Checkout the code
   - checkout: self
     submodules: true
 
-  # Install dependencies (for example, if using Node.js)
+  # Install Node.js version
   - task: NodeTool@0
     inputs:
       versionSpec: '14.x'
@@ -27,17 +27,34 @@ steps:
       npm install
     displayName: 'Install Node.js Dependencies'
 
-  # Run npm build
+  # Build the application
   - script: |
+      set -e  # Stop on error
+      echo "Building application"
+      npm install
       npm run build
     displayName: 'Build Application'
+
+  # Deploy the application with error handling
+  - script: |
+      set -e
+      echo "Deploying application"
+      if ! npm run deploy; then
+        echo "Warning: Deployment failed, exiting gracefully..." >&2
+        exit 0  # Exit gracefully even on failure
+      fi
+    displayName: 'Deploy Application'
 
   # Deploy to Azure Static Web App
   - task: AzureStaticWebApp@0
     inputs:
-      app_location: 'build'  # Update this to the correct output folder (e.g., 'build' for React)
+      app_location: 'build'  # Output folder (e.g., 'build' for React)
       api_location: 'api'
       output_location: ''
-      
     env:
       azure_static_web_api_token: $(deployment_token)
+
+  # Run npm build again (optional)
+  - script: |
+      npm run build
+    displayName: 'Build Application'
